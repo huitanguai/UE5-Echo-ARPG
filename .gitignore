@@ -22,3 +22,5 @@ Content
 *.suo
 *.xcodeproj
 *.xcworkspace
+
+*.png
