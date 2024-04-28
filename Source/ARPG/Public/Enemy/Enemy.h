@@ -39,6 +39,9 @@ private:
 	UPROPERTY(EditAnywhere,Category="Sound")
 	USoundBase* HitSound;
 
+	UPROPERTY(EditAnywhere, Category = "VisualEffects")
+	UParticleSystem* HitParticle;
+
 public:	
 
 };

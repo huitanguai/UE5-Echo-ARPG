@@ -56,6 +56,11 @@ void AEnemy::GetHit(const FVector& ImpactPoint)
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, HitSound, ImpactPoint);
 	}
+
+	if (HitParticle && GetWorld())
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), HitParticle, ImpactPoint);
+	}
 }
 
 void AEnemy::DirectionalHitReact(const FVector& ImpactPoint)
@@ -88,13 +93,13 @@ void AEnemy::DirectionalHitReact(const FVector& ImpactPoint)
 
 	PlayHitReactMontage(Section);
 
-	UKismetSystemLibrary::DrawDebugArrow(this, GetActorLocation(), GetActorLocation() + CrossProduct * 100.f, 5.f, FColor::Red, 5.f);
+	/*UKismetSystemLibrary::DrawDebugArrow(this, GetActorLocation(), GetActorLocation() + CrossProduct * 100.f, 5.f, FColor::Red, 5.f);
 
 	if (GEngine)
 	{
 		GEngine->AddOnScreenDebugMessage(3, 5.f, FColor::Green, FString::Printf(TEXT("Theta : %f"), Theta));
 	}
 	UKismetSystemLibrary::DrawDebugArrow(this, GetActorLocation(), GetActorLocation() + Forward * 60.f, 5.f, FColor::Red, 5.f);
-	UKismetSystemLibrary::DrawDebugArrow(this, GetActorLocation(), GetActorLocation() + ToHit * 60.f, 5.f, FColor::Green, 5.f);
+	UKismetSystemLibrary::DrawDebugArrow(this, GetActorLocation(), GetActorLocation() + ToHit * 60.f, 5.f, FColor::Green, 5.f);*/
 }
 
