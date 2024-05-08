@@ -8,7 +8,6 @@
 #include "GroomComponent.h"
 #include "Items/Weapons/Weapon.h"
 #include "Animation/AnimMontage.h"
-#include "Components/BoxComponent.h"
 
 ASlashCharacter::ASlashCharacter()
 {
@@ -152,38 +151,14 @@ void ASlashCharacter::FinishEquipping()
 
 void ASlashCharacter::Attack()
 {	
+	Super::Attack();
+
 	if (CanAttack())
 	{
 		PlayAttackMontage();
 		ActionState = EActionState::EAS_Attacking;
 	}
 
-}
-
-void ASlashCharacter::PlayAttackMontage()
-{
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if (AnimInstance && AttackMontage)
-	{
-		AnimInstance->Montage_Play(AttackMontage, 1.9f);
-		const int32 Selection = FMath::RandRange(0,2);
-		FName SectionName = FName();
-		switch (Selection)
-		{
-		case 0:
-			SectionName = FName("Attack1");
-			break;
-		case 1:
-			SectionName = FName("Attack2");
-			break;
-		case 2:
-			SectionName = FName("Attack3");
-			break;
-		default:
-			break;
-		}
-		AnimInstance->Montage_JumpToSection(SectionName, AttackMontage);
-	}
 }
 
 void ASlashCharacter::PlayEquipMontage(const FName& SectionName)
@@ -193,6 +168,16 @@ void ASlashCharacter::PlayEquipMontage(const FName& SectionName)
 	{
 		AnimInstance->Montage_Play(EquipMontage);
 		AnimInstance->Montage_JumpToSection(SectionName, EquipMontage);
+	}
+}
+
+void ASlashCharacter::PlayMontageSection(UAnimMontage* Montage, const FName& SectionName)
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance)
+	{
+		AnimInstance->Montage_Play(Montage,1.8f);
+		AnimInstance->Montage_JumpToSection(SectionName, Montage);
 	}
 }
 
@@ -222,15 +207,5 @@ void ASlashCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	PlayerInputComponent->BindAction(FName("Equip"), EInputEvent::IE_Pressed, this, &ASlashCharacter::EKeyPressed);
 	PlayerInputComponent->BindAction(FName("Attack"), EInputEvent::IE_Pressed, this, &ASlashCharacter::Attack);
 
-}
-
-void ASlashCharacter::SetWeaponCollisionEnabled(ECollisionEnabled::Type CollisionEnabled)
-{
-	//要访问Weapon类修改组件碰撞
-	if (EquippedWeapon && EquippedWeapon->GetWeaponBox())
-	{
-		EquippedWeapon->IgnoreActors.Empty();
-		EquippedWeapon->GetWeaponBox()->SetCollisionEnabled(CollisionEnabled);
-	}
 }
 
