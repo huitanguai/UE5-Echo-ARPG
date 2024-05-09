@@ -15,49 +15,44 @@ class ARPG_API ASlashCharacter : public ABaseCharacter
 
 public:
 	ASlashCharacter();
-	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual void GetHit_Implementation(const FVector& ImpactPoint) override;
 
 protected:
-	//
-	//用于绑定操作映射
-	//
 	virtual void BeginPlay() override;
+
+	/** 用于绑定操作映射的函数 */
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 	void Turn(float Value);
 	void LookUp(float Value);
 	void EKeyPressed();
 	virtual void Attack() override;
+	/** 用于绑定操作映射的函数 */
 
-	//
-	//用于播放montage
-	//
-	void PlayEquipMontage(const FName& SectionName);
-
-	virtual void PlayMontageSection(UAnimMontage* Montage, const FName& SectionName) override;
-
+	/** Combat */
+	void EquipWeapon(AWeapon* Weapon);
 	virtual void AttackEnd() override;
-
 	virtual bool CanAttack() override;
 	bool CanDisarm();
 	bool Canarm();
-
-	UFUNCTION(BlueprintCallable)
-	void Disarm();
-
-	UFUNCTION(BlueprintCallable)
+	void DisArm();
 	void Arm();
+	/** Combat */
+
+	void PlayEquipMontage(const FName& SectionName);
+	virtual void PlayMontageSection(UAnimMontage* Montage, const FName& SectionName) override;
+
+	UFUNCTION(BlueprintCallable)
+	void AttachWeaponToBack();
+
+	UFUNCTION(BlueprintCallable)
+	void AttachWeaponToHand();
 
 	UFUNCTION(BlueprintCallable)
 	void FinishEquipping();
 
 private:
-	ECharacterState CharacterState = ECharacterState::ECS_Unequipped;
-
-	UPROPERTY(BlueprintReadWrite,meta=(AllowPrivateAccess="true"))
-	EActionState ActionState = EActionState::EAS_Unoccupied;
-
 	UPROPERTY(VisibleAnywhere)
 	class USpringArmComponent* SpringArm;
 
@@ -73,13 +68,13 @@ private:
 	UPROPERTY(VisibleInstanceOnly)
 	class AItem* OverlappingItem;
 
-	//
-	//montage变量
-	//
 	UPROPERTY(EditDefaultsOnly, Category = "Montages")
 	class UAnimMontage* EquipMontage;
 
+	ECharacterState CharacterState = ECharacterState::ECS_Unequipped;
 
+	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	EActionState ActionState = EActionState::EAS_Unoccupied;
 
 public:
 	FORCEINLINE void SetOverlappingItem(AItem* Item) { OverlappingItem = Item; }
