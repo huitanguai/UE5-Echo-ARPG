@@ -5,18 +5,24 @@
 #include "CoreMinimal.h"
 #include "Characters/BaseCharacter.h"
 #include "CharacterTypes.h"
+#include "Interfaces/PickupInterface.h"
 #include "SlashCharacter.generated.h"
 
 
 UCLASS()
-class ARPG_API ASlashCharacter : public ABaseCharacter
+class ARPG_API ASlashCharacter : public ABaseCharacter,public IPickupInterface
 {
 	GENERATED_BODY()
 
 public:
 	ASlashCharacter();
+	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	virtual void GetHit_Implementation(const FVector& ImpactPoint) override;
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+	virtual void GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter) override;
+	virtual void SetOverlappingItem(class AItem* Item) override;
+	virtual void AddGold(class ATreasure* Treasure) override;
+	virtual void AddSouls(class ASoul* Soul) override;
 
 protected:
 	virtual void BeginPlay() override;
@@ -28,19 +34,26 @@ protected:
 	void LookUp(float Value);
 	void EKeyPressed();
 	virtual void Attack() override;
+	virtual void Jump() override;
+	void Dodge();
 	/** 用于绑定操作映射的函数 */
 
 	/** Combat */
 	void EquipWeapon(AWeapon* Weapon);
 	virtual void AttackEnd() override;
+	virtual void DodgeEnd() override;
 	virtual bool CanAttack() override;
 	bool CanDisarm();
 	bool Canarm();
 	void DisArm();
 	void Arm();
+	bool HasEnoughStamina();
+	bool IsOccupied();
 	/** Combat */
 
 	void PlayEquipMontage(const FName& SectionName);
+	virtual int32 PlayAttackMontage() override;
+	virtual void Die() override;
 	virtual void PlayMontageSection(UAnimMontage* Montage, const FName& SectionName) override;
 
 	UFUNCTION(BlueprintCallable)
@@ -52,12 +65,20 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void FinishEquipping();
 
+	UFUNCTION(BlueprintCallable)
+	void HitReactEnd();
+
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
+	class UCameraComponent* ViewCamera;
+
 private:
-	UPROPERTY(VisibleAnywhere)
-	class USpringArmComponent* SpringArm;
+	bool IsUnoccupied();
+	void InitializeSlashOverlay();
+	void SetHUDHealth();
+	
 
 	UPROPERTY(VisibleAnywhere)
-	class UCameraComponent* ViewCamera;
+	class USpringArmComponent* SpringArm;
 
 	UPROPERTY(VisibleAnywhere,Category = "Hair")
 	class UGroomComponent* Hair;
@@ -73,10 +94,13 @@ private:
 
 	ECharacterState CharacterState = ECharacterState::ECS_Unequipped;
 
-	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	EActionState ActionState = EActionState::EAS_Unoccupied;
 
+	UPROPERTY()
+	class USlashOverlay* SlashOverlay;
+
 public:
-	FORCEINLINE void SetOverlappingItem(AItem* Item) { OverlappingItem = Item; }
-	FORCEINLINE ECharacterState GetCharacterState() { return CharacterState; }
+	FORCEINLINE ECharacterState GetCharacterState() const { return CharacterState; }
+	FORCEINLINE EActionState GetActionState() const { return ActionState; }
 };

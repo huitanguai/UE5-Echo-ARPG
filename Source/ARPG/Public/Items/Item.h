@@ -45,6 +45,9 @@ protected:
 	UFUNCTION()
 	virtual void OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
+	virtual void SpawnPickupSystem();
+	virtual void SpawnPickupSound();
+
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
 	UStaticMeshComponent* ItemMesh;
 
@@ -54,13 +57,17 @@ protected:
 	class USphereComponent* Sphere;
 
 	UPROPERTY(EditAnywhere)
-	class UNiagaraComponent* EmbersEffect;
+	class UNiagaraComponent* ItemEffect;
 
 private:
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,meta=(AllowPrivateAccess="true"))
 	float RunningTime;
 
+	UPROPERTY(EditAnywhere)
+	class UNiagaraSystem* PickupEffect;
 
+	UPROPERTY(EditAnywhere)
+	class USoundBase* PickupSound;
 };
 
 template<typename T>

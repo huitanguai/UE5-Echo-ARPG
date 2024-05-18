@@ -23,12 +23,34 @@ void ABaseCharacter::BeginPlay()
 	
 }
 
+void ABaseCharacter::GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter)
+{
+	if (IsAlive() && Hitter)
+	{
+		DirectionalHitReact(Hitter->GetActorLocation());
+	}
+	else
+	{
+		Die();
+	}
+	PlayHitSound(ImpactPoint);
+	SpawnHitParticles(ImpactPoint);
+}
+
 void ABaseCharacter::Attack()
 {
+	if (CombatTarget && CombatTarget->ActorHasTag(FName("Dead")))
+	{
+		CombatTarget = nullptr;
+	}
 }
 
 void ABaseCharacter::Die()
 {
+	Tags.Add(FName("Dead"));
+	DisableCapsule();
+	SetWeaponCollisionEnabled(ECollisionEnabled::NoCollision);
+	PlayDeathMontage();
 }
 
 int ABaseCharacter::PlayAttackMontage()
@@ -38,7 +60,51 @@ int ABaseCharacter::PlayAttackMontage()
 
 int32 ABaseCharacter::PlayDeathMontage()
 {
-	return PlayRandomMontageSection(DeathMontage, DeathMontageSections);
+	const int32 Selection = PlayRandomMontageSection(DeathMontage, DeathMontageSections);
+	TEnumAsByte<EDeathPose> Pose(Selection);
+	if (Pose < EDeathPose::EDS_Max)
+	{
+		DeathPose = Pose;
+	}
+	return Selection;
+}
+
+void ABaseCharacter::PlayDodgeMontage()
+{
+	PlayMontageSection(DodgeMontage, FName("Default"));
+}
+
+void ABaseCharacter::StopAttackMontage()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance)
+	{
+		AnimInstance->Montage_Stop(0.25f, AttackMontage);
+	}
+}
+
+FVector ABaseCharacter::GetTranslationWarpTarget()
+{
+	if (CombatTarget == nullptr)
+	{
+		return FVector();
+	}
+	const FVector CombatTargetLocation = CombatTarget->GetActorLocation();
+	const FVector Location = GetActorLocation();
+
+	FVector TargetTome = (Location - CombatTargetLocation).GetSafeNormal();
+	TargetTome *= WarpTargetDistance;
+
+	return CombatTargetLocation + TargetTome;
+}
+
+FVector ABaseCharacter::GetRotationWarpTarget()
+{
+	if (CombatTarget)
+	{
+		return CombatTarget->GetActorLocation();
+	}
+	return FVector();
 }
 
 void ABaseCharacter::DisableCapsule()
@@ -152,8 +218,18 @@ bool ABaseCharacter::IsAlive()
 	return Attributes && Attributes->IsAlive();
 }
 
+void ABaseCharacter::DisableMeshCollision()
+{
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+}
+
 void ABaseCharacter::AttackEnd()
 {
+}
+
+void ABaseCharacter::DodgeEnd()
+{
+	
 }
 
 void ABaseCharacter::SetWeaponCollisionEnabled(ECollisionEnabled::Type CollisionEnabled)
